@@ -1,0 +1,92 @@
+不能被序列化的关键字
+static
+transient 
+spring mvc 步骤
+
+1、客户端发出一个http请求给web服务器，web服务器对http请求进行解析，如果匹配DispatcherServlet的请求映射路径（在web.xml中指定），web容器将请求转交给DispatcherServlet.
+2、DipatcherServlet接收到这个请求之后将根据请求的信息（包括URL、Http方法、请求报文头和请求参数Cookie等）以及HandlerMapping的配置找到处理请求的处理器（Handler）。
+3-4、DispatcherServlet根据HandlerMapping找到对应的Handler,将处理权交给Handler（Handler将具体的处理进行封装），再由具体的HandlerAdapter对Handler进行具体的调用。
+5、Handler对数据处理完成以后将返回一个ModelAndView()对象给DispatcherServlet。
+6、Handler返回的ModelAndView()只是一个逻辑视图并不是一个正式的视图，DispatcherSevlet通过ViewResolver将逻辑视图转化为真正的视图View。
+7、Dispatcher通过model解析出ModelAndView()中的参数进行解析最终展现出完整的view并返回给客户端。
+
+
+一级缓存：默认的session缓存 同一个session共享，修改会刷新缓存
+二级缓存：默认关闭，sessionFactory级别的缓存 多个session可以共享的缓存
+mybatis打开cacheEnabled 为true
+在到要使用二级缓存的XML中添加<cache/>
+不设置缓存时间，会被序列化，故要实现serializable
+
+
+1.
+load get 区别
+load：支持延迟加载，在延迟加载的时候返回代理对象，使用的时候如果数据库中没有这条数据，抛出ObjectNotFoundExcepiton异常
+get:即时加载,找不到这条数据，返回null；
+
+2.
+cascade save-update 增加 保存
+ delete 删除时
+ add 增加
+ none 无
+是否级联关联的对象
+
+3.hibernate
+瞬时态 新建的对象，此时数据库中没有该对象，session也没有该对象（没主键）
+持久态	jvm堆有，session有，数据库中有，这个状态中对对象的任何修改都会影响到数据库
+游离态/托管态 session.close session.cleat,session.evict
+jvm堆有，数据库中 有session没有
+
+
+
+4
+hibernate延迟加载
+class和关系配置的位置
+class中加lazy true 开启延迟加载
+在many to one等子标签中加 lazy proxy或者no_proxy 对象的延迟加载  get也会延迟加载
+延迟加载必须在session 关闭了session在去延迟加载就会抛出异常
+
+5
+乐观锁 悲观锁
+乐观锁程序本身实现的，只限在该应用范围有排他效果，
+hibernate使用version/timestamp完成乐观锁。
+悲观锁就是使用数据库的机制，完成排他，性能很低，但是完全排他，即任何地方不能使用
+
+6.
+fetch: select join
+join 不支持
+select 支持lazy
+
+struts过程
+
+ * 1. 容器启动加载web.xml，然后加载struts2核心过滤器StrutsPrepareAndExecuteFilter
+ * 继而加载struts.xml配置文件
+ * 2. 客户端发送请求，会被核心过滤器拦截到.action的所有请求
+ * 3. 匹配package namespace和action的name，进入拦截栈，进行数据赋值
+ * 4. 进入action方法处理，处理完后，返回result匹配的name，并将数据带到request域中
+ 
+ 
+ 
+ 
+ Spring事务的隔离级别
+ 1. ISOLATION_DEFAULT： 这是一个PlatfromTransactionManager默认的隔离级别，使用数据库默认的事务隔离级别.
+      另外四个与JDBC的隔离级别相对应
+ 2. ISOLATION_READ_UNCOMMITTED： 这是事务最低的隔离级别，它充许令外一个事务可以看到这个事务未提交的数据。
+      这种隔离级别会产生脏读，不可重复读和幻像读。
+ 3. ISOLATION_READ_COMMITTED： 保证一个事务修改的数据提交后才能被另外一个事务读取。另外一个事务不能读取该事务未提交的数据
+ 4. ISOLATION_REPEATABLE_READ： 这种事务隔离级别可以防止脏读，不可重复读。但是可能出现幻像读。
+      它除了保证一个事务不能读取另一个事务未提交的数据外，还保证了避免下面的情况产生(不可重复读)。
+ 5. ISOLATION_SERIALIZABLE 这是花费最高代价但是最可靠的事务隔离级别。事务被处理为顺序执行。
+      除了防止脏读，不可重复读外，还避免了幻像读。
+
+什么是脏数据，脏读，不可重复读，幻觉读？
+ 脏读: 指当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，这时，
+     另外一个事务也访问这个数据，然后使用了这个数据。因为这个数据是还没有提交的数据， 那么另外一
+     个事务读到的这个数据是脏数据，依据脏数据所做的操作可能是不正确的。
+    
+ 不可重复读: 指在一个事务内，多次读同一数据。在这个事务还没有结束时，另外一个事务也访问该同一数据。
+             那么，在第一个事务中的两次读数据之间，由于第二个事务的修改，那么第一个事务两次读到的数据
+             可能是不一样的。这样就发生了在一个事务内两次读到的数据是不一样的，因此称为是不可重复读。
+            
+ 幻觉读: 指当事务不是独立执行时发生的一种现象，例如第一个事务对一个表中的数据进行了修改，这种修改涉及
+         到表中的全部数据行。同时，第二个事务也修改这个表中的数据，这种修改是向表中插入一行新数据。那么，
+         以后就会发生操作第一个事务的用户发现表中还有没有修改的数据行，就好象发生了幻觉一样
